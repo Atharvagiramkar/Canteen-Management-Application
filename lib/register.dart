@@ -1,16 +1,14 @@
-import 'package:canteen_management_app/forget.dart';
-import 'package:canteen_management_app/register.dart';
-import 'package:canteen_management_app/splash.dart';
+import 'package:canteen_management_app/login.dart';
 import 'package:flutter/material.dart';
 
-class MyLogin extends StatefulWidget {
-  const MyLogin({super.key});
+class MyRegister extends StatefulWidget {
+  const MyRegister({super.key});
 
   @override
-  State<MyLogin> createState() => _MyLoginState();
+  State<MyRegister> createState() => _MyRegisterState();
 }
 
-class _MyLoginState extends State<MyLogin> {
+class _MyRegisterState extends State<MyRegister> {
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -18,7 +16,7 @@ class _MyLoginState extends State<MyLogin> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -30,23 +28,18 @@ class _MyLoginState extends State<MyLogin> {
                     // Your action here
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SplashScreen()),
+                      MaterialPageRoute(builder: (context) => MyLogin()),
                     );
                   },
                 ),
               ),
               Center(
-                child: Image.asset('assets/images/login.png', height: 250),
+                child: Image.asset('assets/images/register.png', height: 250),
               ),
-              const SizedBox(height: 20),
-              // ✅ Wrapped inside Form
               Form(
                 key: _formKey,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -64,27 +57,41 @@ class _MyLoginState extends State<MyLogin> {
                     children: [
                       const SizedBox(height: 20),
                       const Text(
-                        "Welcome Back",
+                        "Welcome",
                         style: TextStyle(
-                          fontSize: 40,
+                          fontSize: 50,
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
                         ),
                       ),
                       const Text(
-                        "Please Fill Your details to Login",
-                        style: TextStyle(fontSize: 16),
+                        "Please Fill the Details to Register !!",
+                        style: TextStyle(fontSize: 20),
                       ),
-                      const SizedBox(height: 40),
-
-                      // ✅ Email Field
+                      const SizedBox(height: 30),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: "Username",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          suffixIcon: const Icon(Icons.person_outline),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Username can not be empty!';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
                       TextFormField(
                         decoration: InputDecoration(
                           labelText: "Email",
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          suffixIcon: const Icon(Icons.email),
+                          suffixIcon: const Icon(Icons.email_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -96,9 +103,7 @@ class _MyLoginState extends State<MyLogin> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 25),
-
-                      // ✅ Password Field
+                      const SizedBox(height: 20),
                       TextFormField(
                         obscureText: true,
                         decoration: InputDecoration(
@@ -106,7 +111,7 @@ class _MyLoginState extends State<MyLogin> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          suffixIcon: const Icon(Icons.lock),
+                          suffixIcon: const Icon(Icons.lock_outline),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -118,32 +123,33 @@ class _MyLoginState extends State<MyLogin> {
                           return null;
                         },
                       ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ForgetPassword(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Forget Password",
-                            style: TextStyle(color: Colors.blue),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: "Confirm Password",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
+                          suffixIcon: const Icon(Icons.lock_outline),
                         ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your Password!';
+                          }
+                          if (value.length < 6 || value.length > 32) {
+                            return 'Password Length should be between 6 to 32 characters';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 20),
-
-                      // ✅ Login Button
                       SizedBox(
                         width: 200,
                         child: ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              // Navigator.of(context).push(const MyRegister(5));
+                              // Navigator.of(context).push(const Homepage(5));
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -156,7 +162,7 @@ class _MyLoginState extends State<MyLogin> {
                             ),
                           ),
                           child: const Text(
-                            "Login",
+                            "Sign up",
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -171,19 +177,19 @@ class _MyLoginState extends State<MyLogin> {
                         children: [
                           Padding(
                             padding: EdgeInsets.only(right: 0),
-                            child: Text("Don't have account ? "),
+                            child: Text("Already have account ! "),
                           ),
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => MyRegister(),
+                                  builder: (context) => MyLogin(),
                                 ),
-                              ); // Navigate to Register screen
+                              ); 
                             },
                             child: const Text(
-                              'Sing up',
+                              'Sing in',
                               style: TextStyle(
                                 color: Colors.green,
                                 fontWeight: FontWeight.bold,
@@ -285,7 +291,7 @@ class _MyLoginState extends State<MyLogin> {
                           style: TextStyle(fontSize: 15, color: Colors.grey),
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
