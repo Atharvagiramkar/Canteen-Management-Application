@@ -1,3 +1,4 @@
+
 import 'package:canteen_management_app/forget.dart';
 import 'package:canteen_management_app/register.dart';
 import 'package:canteen_management_app/splash.dart';
@@ -143,7 +144,7 @@ class _MyLoginState extends State<MyLogin> {
                         child: ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              // Navigator.of(context).push(const MyRegister(5));
+                              
                             }
                           },
                           style: ElevatedButton.styleFrom(

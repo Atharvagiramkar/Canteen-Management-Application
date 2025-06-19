@@ -1,16 +1,15 @@
 import 'package:canteen_management_app/login.dart';
 import 'package:canteen_management_app/components/popup.dart';
-import 'package:canteen_management_app/otpverification.dart';
 import 'package:flutter/material.dart';
 
-class ForgetPassword extends StatefulWidget {
-  const ForgetPassword({super.key});
+class ResetPassword extends StatefulWidget {
+  const ResetPassword({super.key});
 
   @override
-  State<ForgetPassword> createState() => _ForgetPasswordState();
+  State<ResetPassword> createState() => _ResetPasswordState();
 }
 
-class _ForgetPasswordState extends State<ForgetPassword> {
+class _ResetPasswordState extends State<ResetPassword> {
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -33,13 +32,13 @@ class _ForgetPasswordState extends State<ForgetPassword> {
               ),
             ),
             SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 25, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 25, vertical: 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Center(
                     child: Image.asset(
-                      'assets/images/forgetpassword.png',
+                      'assets/images/resetpassword.png',
                       height: 300,
                     ),
                   ),
@@ -67,7 +66,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                         children: [
                           const SizedBox(height: 20),
                           const Text(
-                            "Forget Password",
+                            "Reset Password",
                             style: TextStyle(
                               fontSize: 40,
                               fontWeight: FontWeight.bold,
@@ -76,25 +75,46 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                           ),
                           const SizedBox(height: 20),
                           const Text(
-                            "Please Enter you Email to Reset Password",
+                            "Please Enter your New Password",
                             style: TextStyle(fontSize: 20),
                           ),
                           const SizedBox(height: 40),
                           // ✅ Email Field
                           TextFormField(
+                            obscureText: true,
                             decoration: InputDecoration(
-                              labelText: "Email",
+                              labelText: "New Password",
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              suffixIcon: const Icon(Icons.email),
+                              suffixIcon: const Icon(Icons.lock),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your Email !!';
+                                return 'Please enter your Password!';
                               }
-                              if (!value.contains('@')) {
-                                return 'Please enter a valid Email address!';
+                              if (value.length < 6 || value.length > 32) {
+                                return 'Password Length should be between 6 to 32 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          TextFormField(
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: "Confirm Password",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              suffixIcon: const Icon(Icons.lock),
+                            ), 
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your Password!';
+                              }
+                              if (value.length < 6 || value.length > 32) {
+                                return 'Password Length should be between 6 to 32 characters';
                               }
                               return null;
                             },
@@ -108,18 +128,17 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                                   // Navigator.of(context).push(const OTPVerification(5));
                                   showCustomPopup(
                                     context: context,
-                                    icon: Icons.mark_email_read,
+                                    icon: Icons.lock_reset,
                                     title: "Reset Password",
                                     message:
-                                        "OTP is sent to your Email Address",
+                                        "Your Password is Reset to New Password",
                                     primaryBtnText: "Ok",
                                     onPrimaryPressed: () {
                                       Navigator.pop(context);
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              OTPValidation(),
+                                          builder: (context) => MyLogin(),
                                         ),
                                       );
                                     },
@@ -138,7 +157,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                                 ),
                               ),
                               child: const Text(
-                                "Verify",
+                                "Reset",
                                 style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
