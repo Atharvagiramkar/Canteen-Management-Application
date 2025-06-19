@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:canteen_management_app/components/popup.dart';
-import 'package:canteen_management_app/login.dart';
+import 'package:canteen_management_app/forget.dart';
 import 'package:canteen_management_app/resetpassword.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
@@ -85,7 +85,7 @@ class _OTPValidationState extends State<OTPValidation> {
                   // Your action here
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MyLogin()),
+                    MaterialPageRoute(builder: (context) => ForgetPassword()),
                   );
                 },
               ),
@@ -179,11 +179,11 @@ class _OTPValidationState extends State<OTPValidation> {
                               _validateOtp;
                               showCustomPopup(
                                 context: context,
-                                icon: Icons.verified_rounded, 
+                                icon: Icons.verified_rounded,
                                 title: "OTP Validated Successfully",
                                 message: "Your OTP is Validated Successfully",
                                 primaryBtnText: "Ok",
-                                onPrimaryPressed: (){
+                                onPrimaryPressed: () {
                                   Navigator.pop(context);
                                   Navigator.push(
                                     context,
@@ -191,7 +191,7 @@ class _OTPValidationState extends State<OTPValidation> {
                                       builder: (context) => ResetPassword(),
                                     ),
                                   );
-                                }
+                                },
                               );
                             },
                             style: ElevatedButton.styleFrom(

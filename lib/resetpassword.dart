@@ -1,5 +1,7 @@
+import 'package:canteen_management_app/forget.dart';
 import 'package:canteen_management_app/login.dart';
 import 'package:canteen_management_app/components/popup.dart';
+import 'package:canteen_management_app/otpverification.dart';
 import 'package:flutter/material.dart';
 
 class ResetPassword extends StatefulWidget {
@@ -26,7 +28,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                   // Your action here
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MyLogin()),
+                    MaterialPageRoute(builder: (context) => ForgetPassword()),
                   );
                 },
               ),
@@ -47,7 +49,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
-                        vertical: 8,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -64,7 +66,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           const Text(
                             "Reset Password",
                             style: TextStyle(
@@ -73,12 +75,12 @@ class _ResetPasswordState extends State<ResetPassword> {
                               color: Colors.green,
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           const Text(
                             "Please Enter your New Password",
                             style: TextStyle(fontSize: 20),
                           ),
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 20),
                           // ✅ Email Field
                           TextFormField(
                             obscureText: true,
