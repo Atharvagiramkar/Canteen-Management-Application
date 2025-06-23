@@ -1,9 +1,29 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.4.1") // Update this based on your Android Gradle Plugin version
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.21") // Match with your Kotlin version
+        classpath ("com.google.gms:google-services:4.4.2") // Only if using Firebase/Google services
+    }
+}
+
+
+
+
+
+
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
+
+    
 }
+
 
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
@@ -19,3 +39,4 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+

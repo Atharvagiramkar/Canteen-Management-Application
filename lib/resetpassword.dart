@@ -1,7 +1,6 @@
 import 'package:canteen_management_app/forget.dart';
 import 'package:canteen_management_app/login.dart';
 import 'package:canteen_management_app/components/popup.dart';
-import 'package:canteen_management_app/otpverification.dart';
 import 'package:flutter/material.dart';
 
 class ResetPassword extends StatefulWidget {
@@ -13,6 +12,8 @@ class ResetPassword extends StatefulWidget {
 
 class _ResetPasswordState extends State<ResetPassword> {
   final _formKey = GlobalKey<FormState>();
+  TextEditingController passwordcontroller = TextEditingController();
+  TextEditingController confirmpasswordcontroller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +84,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                           const SizedBox(height: 20),
                           // ✅ Email Field
                           TextFormField(
+                            controller: passwordcontroller,
                             obscureText: true,
                             decoration: InputDecoration(
                               labelText: "New Password",
@@ -103,6 +105,7 @@ class _ResetPasswordState extends State<ResetPassword> {
                           ),
                           const SizedBox(height: 20),
                           TextFormField(
+                            controller: confirmpasswordcontroller,
                             obscureText: true,
                             decoration: InputDecoration(
                               labelText: "Confirm Password",
@@ -110,13 +113,16 @@ class _ResetPasswordState extends State<ResetPassword> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               suffixIcon: const Icon(Icons.lock),
-                            ), 
+                            ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your Password!';
                               }
                               if (value.length < 6 || value.length > 32) {
                                 return 'Password Length should be between 6 to 32 characters';
+                              }
+                              if (value != passwordcontroller.text) {
+                                return 'New password and Confirm password should be same !';
                               }
                               return null;
                             },

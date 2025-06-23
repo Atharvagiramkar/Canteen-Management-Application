@@ -12,6 +12,7 @@ class ForgetPassword extends StatefulWidget {
 
 class _ForgetPasswordState extends State<ForgetPassword> {
   final _formKey = GlobalKey<FormState>();
+  TextEditingController emailControler = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +83,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                           const SizedBox(height: 40),
                           // ✅ Email Field
                           TextFormField(
+                            controller: emailControler,
                             decoration: InputDecoration(
                               labelText: "Email",
                               border: OutlineInputBorder(
@@ -118,8 +120,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              OTPValidation(),
+                                          builder: (context) => OTPValidation(),
                                         ),
                                       );
                                     },

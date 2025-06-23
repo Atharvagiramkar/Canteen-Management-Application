@@ -1,7 +1,7 @@
-
 import 'package:canteen_management_app/forget.dart';
 import 'package:canteen_management_app/register.dart';
 import 'package:canteen_management_app/splash.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class MyLogin extends StatefulWidget {
@@ -13,6 +13,15 @@ class MyLogin extends StatefulWidget {
 
 class _MyLoginState extends State<MyLogin> {
   final _formKey = GlobalKey<FormState>();
+  TextEditingController email = TextEditingController();
+  TextEditingController password = TextEditingController();
+
+   void signin() async {
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email.text,
+      password: password.text,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +89,7 @@ class _MyLoginState extends State<MyLogin> {
 
                       // ✅ Email Field
                       TextFormField(
+                        controller: email,
                         decoration: InputDecoration(
                           labelText: "Email",
                           border: OutlineInputBorder(
@@ -101,6 +111,7 @@ class _MyLoginState extends State<MyLogin> {
 
                       // ✅ Password Field
                       TextFormField(
+                        controller: password,
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "Password",
@@ -144,7 +155,7 @@ class _MyLoginState extends State<MyLogin> {
                         child: ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              
+                              () => signin();
                             }
                           },
                           style: ElevatedButton.styleFrom(

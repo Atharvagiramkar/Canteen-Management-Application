@@ -1,4 +1,4 @@
-import 'package:canteen_management_app/login.dart';
+// import 'package:canteen_management_app/register.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -29,9 +29,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     // Navigate after 3 seconds
     Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MyLogin()),
-      );
+      // Navigator.of(context).pushReplacement(
+      //   MaterialPageRoute(builder: (_) => const MyRegister()),
+      // );
     });
   }
 
@@ -65,7 +65,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   fontWeight: FontWeight.bold,
                   color: Colors.green,
                 ),
-              )
+              ),
             ],
           ),
         ),

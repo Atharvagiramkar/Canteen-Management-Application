@@ -10,6 +10,10 @@ class MyRegister extends StatefulWidget {
 
 class _MyRegisterState extends State<MyRegister> {
   final _formKey = GlobalKey<FormState>();
+  TextEditingController usernamecontroler = TextEditingController();
+  TextEditingController emailcontroler = TextEditingController();
+  TextEditingController passwordcontroler = TextEditingController();
+  TextEditingController confirmpasswordcontroler = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +74,7 @@ class _MyRegisterState extends State<MyRegister> {
                       ),
                       const SizedBox(height: 30),
                       TextFormField(
+                        controller: usernamecontroler,
                         decoration: InputDecoration(
                           labelText: "Username",
                           border: OutlineInputBorder(
@@ -86,6 +91,7 @@ class _MyRegisterState extends State<MyRegister> {
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
+                        controller: emailcontroler,
                         decoration: InputDecoration(
                           labelText: "Email",
                           border: OutlineInputBorder(
@@ -105,6 +111,7 @@ class _MyRegisterState extends State<MyRegister> {
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
+                        controller: passwordcontroler,
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "Password",
@@ -125,6 +132,7 @@ class _MyRegisterState extends State<MyRegister> {
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
+                        controller: confirmpasswordcontroler,
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "Confirm Password",
@@ -139,6 +147,9 @@ class _MyRegisterState extends State<MyRegister> {
                           }
                           if (value.length < 6 || value.length > 32) {
                             return 'Password Length should be between 6 to 32 characters';
+                          }
+                          if (value != passwordcontroler.text) {
+                            return 'Password and Confirm should be same';
                           }
                           return null;
                         },
@@ -186,7 +197,7 @@ class _MyRegisterState extends State<MyRegister> {
                                 MaterialPageRoute(
                                   builder: (context) => MyLogin(),
                                 ),
-                              ); 
+                              );
                             },
                             child: const Text(
                               'Sing in',
