@@ -1,5 +1,11 @@
 import 'package:canteen_management_app/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:canteen_management_app/homepage.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:io' show Platform;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class MyRegister extends StatefulWidget {
   const MyRegister({super.key});
@@ -15,24 +21,173 @@ class _MyRegisterState extends State<MyRegister> {
   TextEditingController passwordcontroler = TextEditingController();
   TextEditingController confirmpasswordcontroler = TextEditingController();
 
+  bool _isLoading = false;
+
+  Future<String> _assignUserRoleAutomatically() async {
+    final snapshot = await FirebaseFirestore.instance.collection('users').get();
+    return snapshot.docs.isEmpty ? 'owner' : 'customer';
+  }
+
+  Future<void> _registerUser() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+
+      try {
+        // Create user
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+          email: emailcontroler.text.trim(),
+          password: passwordcontroler.text.trim(),
+        );
+
+        final role = await _assignUserRoleAutomatically();
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'uid': userCredential.user!.uid,
+          'username': usernamecontroler.text.trim(),
+          'email': emailcontroler.text.trim(),
+          'role': role,
+          'createdAt': Timestamp.now(),
+        });
+
+        // Clear fields
+        usernamecontroler.clear();
+        emailcontroler.clear();
+        passwordcontroler.clear();
+        confirmpasswordcontroler.clear();
+
+        // Navigate to homepage
+       if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Homepage()),
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        String message = 'Registration failed';
+        if (e.code == 'email-already-in-use') {
+          message = 'Email is already in use.';
+        } else if (e.code == 'weak-password') {
+          message = 'Password is too weak.';
+        } else if (e.code == 'invalid-email') {
+          message = 'Invalid email address.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Something went wrong")),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).get();
+      if (!userDoc.exists) {
+        final role = await _assignUserRoleAutomatically();
+        
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'username': userCredential.user!.displayName ?? '',
+          'email': userCredential.user!.email ?? '',
+          'role': role,
+          'createdAt': Timestamp.now(),
+        });
+      }
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Homepage()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Google sign-in failed")),
+      );
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    if (!Platform.isIOS) return;
+
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+      );
+
+      final oAuthProvider = OAuthProvider("apple.com");
+      final authCredential = oAuthProvider.credential(
+        idToken: credential.identityToken,
+        accessToken: credential.authorizationCode,
+      );
+
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(authCredential);
+
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).get();
+      if (!userDoc.exists) {
+        final role = await _assignUserRoleAutomatically();
+
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'username': credential.givenName ?? '',
+          'email': userCredential.user!.email ?? '',
+          'role': role,
+          'createdAt': Timestamp.now(),
+        });
+      }
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Homepage()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Apple sign-in failed")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back),
                   onPressed: () {
-                    // Your action here
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MyLogin()),
+                      MaterialPageRoute(builder: (context) => const MyLogin()),
                     );
                   },
                 ),
@@ -43,21 +198,20 @@ class _MyRegisterState extends State<MyRegister> {
               Form(
                 key: _formKey,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.grey,
                         spreadRadius: 2,
                         blurRadius: 30,
-                        offset: const Offset(2, 4),
+                        offset: Offset(2, 4),
                       ),
                     ],
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 20),
                       const Text(
@@ -82,12 +236,8 @@ class _MyRegisterState extends State<MyRegister> {
                           ),
                           suffixIcon: const Icon(Icons.person_outline),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Username can not be empty!';
-                          }
-                          return null;
-                        },
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Username can not be empty!' : null,
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
@@ -158,11 +308,7 @@ class _MyRegisterState extends State<MyRegister> {
                       SizedBox(
                         width: 200,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              // Navigator.of(context).push(const Homepage(5));
-                            }
-                          },
+                          onPressed: _isLoading ? null : _registerUser,
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             backgroundColor: Colors.green,
@@ -172,35 +318,39 @@ class _MyRegisterState extends State<MyRegister> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: const Text(
-                            "Sign up",
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                              : const Text(
+                                  "Sign up",
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Padding(
-                            padding: EdgeInsets.only(right: 0),
-                            child: Text("Already have account ! "),
-                          ),
+                          const Text("Already have account? "),
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => MyLogin(),
-                                ),
+                                MaterialPageRoute(builder: (context) => const MyLogin()),
                               );
                             },
                             child: const Text(
-                              'Sing in',
+                              'Sign in',
                               style: TextStyle(
                                 color: Colors.green,
                                 fontWeight: FontWeight.bold,
@@ -210,7 +360,6 @@ class _MyRegisterState extends State<MyRegister> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      // OR Divider
                       Row(
                         children: const [
                           Expanded(child: Divider(thickness: 3)),
@@ -228,68 +377,64 @@ class _MyRegisterState extends State<MyRegister> {
                           Expanded(child: Divider(thickness: 3)),
                         ],
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Social Sign In Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          // Google Button
-                          Column(
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey,
-                                      spreadRadius: 2,
-                                      blurRadius: 8,
-                                      offset: const Offset(2, 4),
-                                    ),
-                                  ],
+                          GestureDetector(
+                            onTap: _signInWithGoogle,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.grey,
+                                        spreadRadius: 2,
+                                        blurRadius: 8,
+                                        offset: Offset(2, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.asset('assets/images/google.png', fit: BoxFit.contain),
                                 ),
-                                child: Image.asset(
-                                  'assets/images/google.png',
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text("Sign in with Google"),
-                            ],
+                                const SizedBox(height: 8),
+                                const Text("Sign in with Google"),
+                              ],
+                            ),
                           ),
-                          // Apple Button
-                          Column(
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey,
-                                      spreadRadius: 2,
-                                      blurRadius: 8,
-                                      offset: const Offset(2, 4),
-                                    ),
-                                  ],
+                          if (Platform.isIOS)
+                          GestureDetector(
+                            onTap: _signInWithApple,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.grey,
+                                        spreadRadius: 2,
+                                        blurRadius: 8,
+                                        offset: Offset(2, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.asset('assets/images/apple.png', fit: BoxFit.contain),
                                 ),
-                                child: Image.asset(
-                                  'assets/images/apple.png',
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text("Sign in with Apple"),
-                            ],
+                                const SizedBox(height: 8),
+                                const Text("Sign in with Apple"),
+                              ],
+                            ),
                           ),
                         ],
                       ),

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>193348288270-263d3ahl65t2gf0j6nmf4oc8tub8l78b.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.193348288270-263d3ahl65t2gf0j6nmf4oc8tub8l78b</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>193348288270-5p4cqr88dj82h68n84tkg3in3l3lu2aa.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyC25XiFX8DrsEda4e2W3ionbf1eqP_RC1I</string>
+	<key>GCM_SENDER_ID</key>
+	<string>193348288270</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.canteenManagementApp</string>
+	<key>PROJECT_ID</key>
+	<string>canteen-management-appli-cf832</string>
+	<key>STORAGE_BUCKET</key>
+	<string>canteen-management-appli-cf832.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:193348288270:ios:bd9509783ccc16af9da15f</string>
+</dict>
+</plist>

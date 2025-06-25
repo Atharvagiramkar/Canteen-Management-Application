@@ -1,8 +1,14 @@
 import 'package:canteen_management_app/forget.dart';
 import 'package:canteen_management_app/register.dart';
 import 'package:canteen_management_app/splash.dart';
+import 'package:canteen_management_app/homepage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:io' show Platform;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+
 
 class MyLogin extends StatefulWidget {
   const MyLogin({super.key});
@@ -16,11 +22,103 @@ class _MyLoginState extends State<MyLogin> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
 
-   void signin() async {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email.text,
-      password: password.text,
-    );
+  Future<void> _loginWithEmailPassword() async {
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email.text.trim(),
+        password: password.text.trim(),
+      );
+
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).get();
+      if (userDoc.exists) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Homepage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User record not found in database.")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Login failed. Please check your credentials.")),
+      );
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).get();
+      if (!userDoc.exists) {
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'username': userCredential.user!.displayName ?? '',
+          'email': userCredential.user!.email ?? '',
+          'role': 'customer',
+          'createdAt': Timestamp.now(),
+        });
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Homepage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Google sign-in failed")),
+      );
+    }
+  }
+
+  Future<void> _signInWithApple() async {
+    if (!Platform.isIOS) return;
+
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [AppleIDAuthorizationScopes.email, AppleIDAuthorizationScopes.fullName],
+      );
+
+      final oAuthProvider = OAuthProvider("apple.com");
+      final authCredential = oAuthProvider.credential(
+        idToken: credential.identityToken,
+        accessToken: credential.authorizationCode,
+      );
+
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(authCredential);
+
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).get();
+      if (!userDoc.exists) {
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'username': credential.givenName ?? '',
+          'email': userCredential.user!.email ?? '',
+          'role': 'customer',
+          'createdAt': Timestamp.now(),
+        });
+      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Homepage()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Apple sign-in failed")),
+      );
+    }
   }
 
   @override
@@ -155,7 +253,7 @@ class _MyLoginState extends State<MyLogin> {
                         child: ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              () => signin();
+                              _loginWithEmailPassword();
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -231,60 +329,61 @@ class _MyLoginState extends State<MyLogin> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           // Google Button
-                          Column(
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey,
-                                      spreadRadius: 2,
-                                      blurRadius: 8,
-                                      offset: const Offset(2, 4),
-                                    ),
-                                  ],
+                          GestureDetector(
+                            onTap: _signInWithGoogle,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.grey,
+                                        spreadRadius: 2,
+                                        blurRadius: 8,
+                                        offset: Offset(2, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.asset('assets/images/google.png', fit: BoxFit.contain),
                                 ),
-                                child: Image.asset(
-                                  'assets/images/google.png',
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text("Sign in with Google"),
-                            ],
+                                const SizedBox(height: 8),
+                                const Text("Sign in with Google"),
+                              ],
+                            ),
                           ),
+                          if (Platform.isIOS)
                           // Apple Button
-                          Column(
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey,
-                                      spreadRadius: 2,
-                                      blurRadius: 8,
-                                      offset: const Offset(2, 4),
-                                    ),
-                                  ],
+                          GestureDetector(
+                            onTap: _signInWithApple,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.grey,
+                                        spreadRadius: 2,
+                                        blurRadius: 8,
+                                        offset: Offset(2, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.asset('assets/images/apple.png', fit: BoxFit.contain),
                                 ),
-                                child: Image.asset(
-                                  'assets/images/apple.png',
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text("Sign in with Apple"),
-                            ],
+                                const SizedBox(height: 8),
+                                const Text("Sign in with Apple"),
+                              ],
+                            ),
                           ),
                         ],
                       ),
