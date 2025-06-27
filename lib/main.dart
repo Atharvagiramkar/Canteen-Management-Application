@@ -5,6 +5,7 @@ import 'package:canteen_management_app/otpverification.dart';
 import 'package:canteen_management_app/register.dart';
 import 'package:canteen_management_app/resetpassword.dart';
 import 'package:canteen_management_app/splash.dart';
+import 'package:canteen_management_app/wishlist.dart';
 import 'package:canteen_management_app/wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ void main() async {
         'otpvalidation': (context) => OTPValidation(),
         'resetpassword': (context) => ResetPassword(),
         'homepage': (context) => Homepage(),
+        'wishlist': (context) => WishlistPage(wishlist: [],),
       },
     ),
   );
