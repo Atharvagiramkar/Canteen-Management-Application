@@ -1,0 +1,12 @@
+# WiFi Scanner Requirements
+# This script uses only Python standard library modules
+# No additional packages required
+
+# Python version requirement
+# python>=3.6
+
+# Standard library modules used:
+# - subprocess
+# - platform
+# - re
+# - sys

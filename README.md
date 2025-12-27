@@ -2,6 +2,24 @@
 
 A new Flutter project.
 
+## Additional Tools
+
+### WiFi Network Scanner
+
+This repository includes a Python script for scanning available WiFi networks and retrieving saved passwords. See [WIFI_SCANNER_README.md](WIFI_SCANNER_README.md) for detailed usage instructions.
+
+**Quick Start:**
+```bash
+# Windows (run as administrator)
+python wifi_scanner.py
+
+# Linux
+sudo python3 wifi_scanner.py
+
+# macOS
+python3 wifi_scanner.py
+```
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
