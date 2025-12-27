@@ -9,6 +9,8 @@ import subprocess
 import platform
 import re
 import sys
+import os
+import shutil
 
 
 class WiFiScanner:
@@ -74,10 +76,21 @@ class WiFiScanner:
             networks = [ssid.strip() for ssid in result.stdout.split('\n') if ssid.strip()]
             return networks
         except (subprocess.CalledProcessError, FileNotFoundError):
-            # Fallback to iwlist
+            # Fallback to iwlist (note: user should run script with sudo if nmcli unavailable)
             try:
+                # Try to find wireless interface
+                interface = self._get_wireless_interface_linux()
+                if not interface:
+                    print("Error: No wireless interface found")
+                    return []
+                
+                # Check if running with sufficient privileges
+                if os.geteuid() != 0:
+                    print("Note: For iwlist scanning, please run this script with sudo")
+                    return []
+                
                 result = subprocess.run(
-                    ["sudo", "iwlist", "scan"],
+                    ["iwlist", interface, "scan"],
                     capture_output=True,
                     text=True,
                     check=True
@@ -96,11 +109,47 @@ class WiFiScanner:
                 print("You may need to install NetworkManager (nmcli) or run with sudo for iwlist")
                 return []
     
+    def _get_wireless_interface_linux(self):
+        """Get the first available wireless interface on Linux"""
+        try:
+            result = subprocess.run(
+                ["iw", "dev"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            
+            for line in result.stdout.split('\n'):
+                if 'Interface' in line:
+                    interface = line.split()[1]
+                    return interface
+        except:
+            # Fallback to common interface names
+            common_interfaces = ['wlan0', 'wlp2s0', 'wlp3s0', 'wlo1']
+            for iface in common_interfaces:
+                if os.path.exists(f'/sys/class/net/{iface}'):
+                    return iface
+        
+        return None
+    
     def _scan_macos(self):
         """Scan WiFi networks on macOS"""
         try:
+            # Try to find the airport utility
+            airport_path = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+            
+            # Check if airport exists at the expected path
+            if not os.path.exists(airport_path):
+                # Try alternative path or use which to find it
+                which_result = shutil.which("airport")
+                if which_result:
+                    airport_path = which_result
+                else:
+                    print("Error: airport utility not found on this macOS system")
+                    return []
+            
             result = subprocess.run(
-                ["/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport", "-s"],
+                [airport_path, "-s"],
                 capture_output=True,
                 text=True,
                 check=True
@@ -162,6 +211,12 @@ class WiFiScanner:
             # Get password for each profile
             for profile in profiles:
                 try:
+                    # Validate profile name to prevent command injection
+                    # Only allow alphanumeric, spaces, hyphens, and underscores
+                    if not re.match(r'^[\w\s\-]+$', profile):
+                        passwords[profile] = "Invalid profile name (security check)"
+                        continue
+                    
                     result = subprocess.run(
                         ["netsh", "wlan", "show", "profile", profile, "key=clear"],
                         capture_output=True,
@@ -190,6 +245,12 @@ class WiFiScanner:
         """Get saved WiFi passwords on Linux"""
         passwords = {}
         
+        # Check if running with sufficient privileges
+        if os.geteuid() != 0:
+            print("Note: Root/sudo access required to retrieve WiFi passwords on Linux")
+            print("Please run this script with: sudo python3 wifi_scanner.py")
+            return {}
+        
         try:
             # Try using nmcli
             result = subprocess.run(
@@ -203,8 +264,12 @@ class WiFiScanner:
             
             for conn in connections:
                 try:
+                    # Validate connection name to prevent command injection
+                    if not conn or len(conn) > 200:  # Reasonable limit
+                        continue
+                    
                     result = subprocess.run(
-                        ["sudo", "nmcli", "-s", "-g", "802-11-wireless-security.psk", "connection", "show", conn],
+                        ["nmcli", "-s", "-g", "802-11-wireless-security.psk", "connection", "show", conn],
                         capture_output=True,
                         text=True,
                         check=True
@@ -217,13 +282,12 @@ class WiFiScanner:
                         passwords[conn] = "No password or open network"
                         
                 except subprocess.CalledProcessError:
-                    passwords[conn] = "Error retrieving password (may need sudo)"
+                    passwords[conn] = "Error retrieving password"
             
             return passwords
             
         except (subprocess.CalledProcessError, FileNotFoundError):
             print("Error: NetworkManager (nmcli) not found or insufficient permissions")
-            print("You may need to run this script with sudo")
             return {}
     
     def _get_passwords_macos(self):
@@ -248,6 +312,10 @@ class WiFiScanner:
             # Get password for each network
             for network in networks:
                 try:
+                    # Validate network name to prevent command injection
+                    if not network or len(network) > 200:  # Reasonable limit
+                        continue
+                    
                     result = subprocess.run(
                         ["security", "find-generic-password", "-wa", network],
                         capture_output=True,
