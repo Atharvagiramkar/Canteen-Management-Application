@@ -14,6 +14,11 @@ import shutil
 
 
 class WiFiScanner:
+    """WiFi Scanner class for scanning networks and retrieving passwords"""
+    
+    # Constants
+    MAX_NETWORK_NAME_LENGTH = 200  # Maximum allowed length for network/connection names
+    
     def __init__(self):
         self.system = platform.system()
         
@@ -123,7 +128,7 @@ class WiFiScanner:
                 if 'Interface' in line:
                     interface = line.split()[1]
                     return interface
-        except:
+        except (subprocess.CalledProcessError, FileNotFoundError, IndexError):
             # Fallback to common interface names
             common_interfaces = ['wlan0', 'wlp2s0', 'wlp3s0', 'wlo1']
             for iface in common_interfaces:
@@ -212,8 +217,14 @@ class WiFiScanner:
             for profile in profiles:
                 try:
                     # Validate profile name to prevent command injection
-                    # Only allow alphanumeric, spaces, hyphens, and underscores
-                    if not re.match(r'^[\w\s\-]+$', profile):
+                    # Check for dangerous characters and length limit
+                    if not profile or len(profile) > self.MAX_NETWORK_NAME_LENGTH:
+                        passwords[profile] = "Invalid profile name (security check)"
+                        continue
+                    
+                    # Check for shell metacharacters that could be dangerous
+                    dangerous_chars = ['|', '&', ';', '$', '`', '\n', '\r', '>', '<', '(', ')', '{', '}']
+                    if any(char in profile for char in dangerous_chars):
                         passwords[profile] = "Invalid profile name (security check)"
                         continue
                     
@@ -265,7 +276,7 @@ class WiFiScanner:
             for conn in connections:
                 try:
                     # Validate connection name to prevent command injection
-                    if not conn or len(conn) > 200:  # Reasonable limit
+                    if not conn or len(conn) > self.MAX_NETWORK_NAME_LENGTH:
                         continue
                     
                     result = subprocess.run(
@@ -313,7 +324,7 @@ class WiFiScanner:
             for network in networks:
                 try:
                     # Validate network name to prevent command injection
-                    if not network or len(network) > 200:  # Reasonable limit
+                    if not network or len(network) > self.MAX_NETWORK_NAME_LENGTH:
                         continue
                     
                     result = subprocess.run(
